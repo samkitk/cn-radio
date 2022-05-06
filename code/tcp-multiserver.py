@@ -23,18 +23,25 @@ import socket               # Import socket module
 import _thread
 
 def on_new_client(clientsocket,addr):
+    # print('Got connection from', addr)
     msg = clientsocket.recv(1024)
+    temp = msg.decode()
+    # print("----",temp,"----")
+    # client_msg = int(temp)
+    if(temp=="1"):
+        print("Succesfully Received Handshake from", addr)
     #do some checks and if msg == someWeirdSignal: break:
-    print(addr, ' >> ', msg)
+    # print(addr, ' >> ', msg)
     # msg = raw_input('SERVER >> ')
     #Maybe some code to compute the last digit of PI, play game or anything else can go here and when you are done.
-    print('Got connection from', addr)
-    clientsocket.send(msg)
+    # num = 1
+    # sep = "\0"
+    # clientsocket.send((str(num)+sep).encode())
     clientsocket.close()
 
-s = socket.socket()         # Create a socket object
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         # Create a socket object
 host = socket.gethostname() # Get local machine name
-port = 8081               # Reserve a port for your service.
+port = 8082              # Reserve a port for your service.
 
 print('Server started!')
 print('Waiting for clients...')
@@ -45,7 +52,10 @@ s.listen(5)                 # Now wait for client connection.
 while True:
    c, addr = s.accept()     # Establish connection with client.
    _thread.start_new_thread(on_new_client,(c,addr))
+   x = input()
+   if(x=="a"):
+       s.close()
+       break
    #Note it's (addr,) not (addr) because second parameter is a tuple
    #Edit: (c,addr)
    #that's how you pass arguments to functions when creating new threads using thread module.
-s.close()
