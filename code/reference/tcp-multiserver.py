@@ -1,12 +1,28 @@
+# import socket
+
+# HOST = "127.0.0.1"  # The server's hostname or IP address
+# PORT = 8080  # The port used by the server
+
+
+# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+#     s.bind((HOST, PORT))
+#     s.listen()
+#     conn, addr = s.accept()
+#     with conn:
+#         print(f"Connected by {addr}")
+#         while True:
+#             data = conn.recv(1024)
+#             if not data:
+#                 break
+#             conn.sendall(data)
+
+
+#!/usr/bin/python           # This is server.py file
+
 import socket  # Import socket module
 import _thread, threading
 import pickle
-from xmlrpc import client
-import pyaudio
-import wave
-import time
-import math
-import struct 
+
 
 site_info = {
     "type": 10,
@@ -43,62 +59,6 @@ pickled_radio_stn_info = pickle.dumps(radio_stn_info)
 # pickled_site_info = pickle.dumps(site_info)
 
 
-
-#    x = input()
-#    if(x=="a"):
-#        s.close()
-#        break
-# Note it's (addr,) not (addr) because second parameter is a tuple
-# Edit: (c,addr)
-# that's how you pass arguments to functions when creating new threads using thread module.
-
-#-------------UDP SERVER SOCKET----------------
-### STATION 1
-MCAST_PORT = 8000
-MCAST_GRP = '239.192.1.1'
-ttl = struct.pack('b', 2)
-IS_ALL_GROUPS = True
-
-def audio_stream_UDP():
-    BUFF_SIZE = 65536
-    audio_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    audio_server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
-    CHUNK = 1024
-    print("Playing Wav File")
-    wf = wave.open("data/10MB.wav")
-    p = pyaudio.PyAudio()   
-    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    input=True,
-                    frames_per_buffer=CHUNK)
-
-    data = None
-    sample_rate = wf.getframerate()
-    while True:
-        audio_server_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
-        DATA_SIZE = math.ceil(wf.getnframes()/CHUNK)
-        DATA_SIZE = str(DATA_SIZE).encode()
-        print('[Sending data size]...', wf.getnframes()/sample_rate)
-        audio_server_socket.sendto(DATA_SIZE, (MCAST_GRP, MCAST_PORT))
-        cnt = 0
-        while True:
-            data = wf.readframes(CHUNK)
-            audio_server_socket.sendto(data, (MCAST_GRP, MCAST_PORT))
-            time.sleep(0.001)
-            print(cnt)
-            if cnt > (wf.getnframes()/CHUNK):
-                break
-            cnt += 1
-        break
-    print('SENT...')
-
-# audio_stream_UDP()
-t2 = threading.Thread(target=audio_stream_UDP, args=())
-t2.start()
-
-
-
 def on_new_client(clientsocket, addr, pickled_radio_stn_info):
     # print('Got connection from', addr)
     msg = clientsocket.recv(1024)
@@ -121,12 +81,12 @@ def on_new_client(clientsocket, addr, pickled_radio_stn_info):
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host = socket.gethostname()  # Get local machine name
-port = 8095  # Reserve a port for your service.
+port = 8072  # Reserve a port for your service.
 
 print("Server started!")
 print("Waiting for clients...")
+
 s.bind((host, port))  # Bind to the port
 s.listen(5)  # Now wait for client connection.
 
@@ -134,3 +94,10 @@ while True:
     c, addr = s.accept()  # Establish connection with client.
     t1=threading.Thread(target=on_new_client,args=(c, addr, pickled_radio_stn_info))
     t1.start()
+#    x = input()
+#    if(x=="a"):
+#        s.close()
+#        break
+# Note it's (addr,) not (addr) because second parameter is a tuple
+# Edit: (c,addr)
+# that's how you pass arguments to functions when creating new threads using thread module.
