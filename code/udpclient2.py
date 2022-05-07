@@ -1,4 +1,3 @@
-
 import socket
 import threading
 import wave
@@ -12,7 +11,7 @@ MCAST_GRP = '224.1.1.1'
 MCAST_PORT = 5007
 IS_ALL_GROUPS = True
 
-q = queue.Queue(maxsize=2000)
+q = queue.Queue(maxsize=20000)
 
 
 def audio_stream_UDP():
@@ -24,7 +23,7 @@ def audio_stream_UDP():
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     client_socket.bind(('', MCAST_PORT))
     p = pyaudio.PyAudio()
-    CHUNK = 1024
+    CHUNK = 10240
     stream = p.open(format=p.get_format_from_width(2),
 					channels=2,
 					rate=44100,
@@ -39,7 +38,7 @@ def audio_stream_UDP():
             print('Queue size...',q.qsize())
     t1 = threading.Thread(target=getAudioData, args=())
     t1.start()
-    time.sleep(1)
+    time.sleep(0.0175)
     print('Now Playing...')
     while True:
         frame = q.get()
