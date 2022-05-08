@@ -194,8 +194,9 @@ def UserChooseStation(numberOfStation):
     if user_input in range(1, numberOfStation + 1):
         print("You have chosen a valid Station!")
         if user_input == 1:
-            Station1_get_audio_thread.start()
-            Station1_get_info_thread.start()
+            Station1_get_audio()
+            # Station1_get_audio_thread.start()
+            # Station1_get_info_thread.start()
 
         elif user_input == 2:
             Station2_get_audio_thread.start()
