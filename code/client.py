@@ -11,7 +11,7 @@ import struct
 import multiprocessing
 
 HOST = socket.gethostname()  # The server's hostname or IP address
-PORT = 8095  # The port used by the server
+PORT = 3003  # The port used by the server
 
 menu_options = {
     "P": "Pause",
@@ -77,63 +77,84 @@ def printMenu():
 
 
 # ------------- UDP ---------------------
-#### STATION 1 VARIABLES
+
+#====== STATION 1 VARIABLES ========
 MCAST_GRP_S1 = station_list["station1"]["multicast_address"]
 MCAST_PORT_S1 = station_list["station1"]["data_port"]
 MCAST_INFO_PORT_S1 = station_list["station1"]["info_port"]
 
-#### STATION 2 VARIABLES
+#====== STATION 2 VARIABLES==========
 MCAST_GRP_S2 = station_list["station2"]["multicast_address"]
 MCAST_PORT_S2 = station_list["station2"]["data_port"]
 MCAST_INFO_PORT_S2 = station_list["station2"]["info_port"]
 
+q = queue.Queue(maxsize=20000)
 
 def audio_stream_UDP(MCAST_GRP, MCAST_PORT):
     BUFF_SIZE = 40960
-    IS_ALL_GROUPS = True
-    q = queue.Queue(maxsize=20000)
-    audio_client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     group = socket.inet_aton(MCAST_GRP)
-    mreq = struct.pack("4sL", group, socket.INADDR_ANY)
-    audio_client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-    audio_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    audio_client_socket.bind(("", MCAST_PORT))
+    mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+    client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    client_socket.bind(('', MCAST_PORT))
     p = pyaudio.PyAudio()
-    CHUNK = 1024
-    stream = p.open(
-        format=p.get_format_from_width(2),
-        channels=2,
-        rate=44100,
-        output=True,
-        frames_per_buffer=CHUNK,
-    )
+    CHUNK = 10240
+    stream = p.open(format=p.get_format_from_width(2),
+					channels=2,
+					rate=44100,
+					output=True,
+					frames_per_buffer=CHUNK)					
 
     def getAudioData():
         while True:
-            print(MCAST_GRP, MCAST_PORT)
-            frame, _ = audio_client_socket.recvfrom(BUFF_SIZE)
+            # print(MCAST_GRP,MCAST_PORT)
+            frame,_= client_socket.recvfrom(BUFF_SIZE)
             q.put(frame)
-            print("Queue size...", q.qsize())
-    #         global stop_audio_stream_udp
-    #         if stop_audio_stream_udp:
-    #             break
-
-    # stop_audio_stream_udp = False
-    t1 = multiprocessing.Process(target=getAudioData, args=())
-    t1.start()
-    time.sleep(1)
-    print("Now Playing...")
+            # print('Queue size...',q.qsize())
+    ta = threading.Thread(target=getAudioData, args=())
+    ta.start()
+    time.sleep(0.0175)
+    print('Now Playing...')
     while True:
         frame = q.get()
         stream.write(frame)
-    audio_client_socket.close()
-    print("Audio closed")
+        # BUFF_SIZE.flush()
+    client_socket.close()
+    print('Audio closed')
     os._exit(1)
 
-
 def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
-    print("This is Information Stream")
-    print("You are tuned at", MCAST_GRP, "on the port -", MCAST_INFO_PORT)
+    BUFF_SIZE = 40960
+    info_client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    group = socket.inet_aton(MCAST_GRP)
+    mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+    info_client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    info_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    info_client_socket.bind(('', MCAST_INFO_PORT))
+    def getInfo():
+        while True:
+            # print(MCAST_GRP,MCAST_INFO_PORT)
+            frame,_= info_client_socket.recvfrom(BUFF_SIZE)
+            new_frame = pickle.loads(frame)
+            time.sleep(0)
+            print(new_frame)
+    ti = threading.Thread(target=getInfo, args=())
+    ti.start()
+    time.sleep(0.0175)
+
+
+# taudio_S1= threading.Thread(target=audio_stream_UDP, args=('239.191.1.1', 5432))
+# tinfo_S1= threading.Thread(target=info_stream_UDP, args=('239.192.1.1',5007))
+# taudio_S1.start()
+# tinfo_S1.start()
+
+
+
+
+# def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
+#     print("This is Information Stream")
+#     print("You are tuned at", MCAST_GRP, "on the port -", MCAST_INFO_PORT)
 
 
 def Station1_get_audio():
@@ -157,20 +178,40 @@ def UserInputMenu(numberOfStation):
     while True:
         user_input = input()
         if user_input == "P":
+            Station1 = False
+            Station2 = False
             print("Pausing Stream")
+            if Station1_get_audio_thread.is_alive():
+                Station1_get_audio_thread.terminate()
+                Station1_get_info_thread.terminate()
+                Station1 = True
+            elif Station2_get_audio_thread.is_alive():
+                Station2_get_audio_thread.terminate()
+                Station2_get_info_thread.terminate()
+                Station2 = True
 
         elif user_input == "R":
             print("Restarting Stream")
+            if Station1:
+                Station1_get_audio_thread.start()
+                Station1_get_info_thread.start()
+            elif Station2:
+                Station2_get_audio_thread.start()
+                Station2_get_info_thread.start()
 
         elif user_input == "C":
             if Station1_get_audio_thread.is_alive():
                 print("Station1 is alive, closing it")
-                # stop_audio_stream_udp = True
-                t1.terminate()
+                Station1_get_audio_thread.terminate()
+                Station1_get_info_thread.terminate()
+                Station2_get_audio_thread.start()
+                Station2_get_info_thread.start()
             elif Station2_get_audio_thread.is_alive():
                 print("Station2 is alive, closing it")
-                # stop_audio_stream_udp = True
-                t1.terminate()
+                Station2_get_audio_thread.terminate()
+                Station2_get_info_thread.terminate()
+                Station1_get_audio_thread.start()
+                Station1_get_info_thread.start()
             else:
                 ("You are not connected to a Station right Now")
             print("What station do you want to connect to?")
