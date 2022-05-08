@@ -122,6 +122,7 @@ def on_new_client(clientsocket, addr, pickled_radio_stn_info):
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host = socket.gethostname()  # Get local machine name
 port = 8095  # Reserve a port for your service.
 
