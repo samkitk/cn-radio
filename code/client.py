@@ -10,8 +10,8 @@ import os
 import struct
 import multiprocessing
 
-HOST = socket.gethostname()  # The server's hostname or IP address
-PORT = 3003  # The port used by the server
+HOST = '127.0.0.1' # The server's hostname or IP address
+PORT = 3004  # The port used by the server
 
 menu_options = {
     "P": "Pause",
@@ -22,6 +22,7 @@ menu_options = {
 
 
 def TCP_Socket_Client_to_Server():
+    print("++++++++++++++++++++++")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         # s.sendall(b"1")
@@ -29,8 +30,10 @@ def TCP_Socket_Client_to_Server():
         # sep = "\0"
         string = str(num)
         s.send(string.encode())
+        print("********************")
         data = s.recv(4096)  ##randomly taken 4096
         station_list = pickle.loads(data)
+        print(data)
         return station_list
 
 
@@ -159,6 +162,7 @@ def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
 
 def Station1_get_audio():
     audio_stream_UDP(MCAST_GRP_S1, MCAST_PORT_S1)
+    print("Station 1 working")
 
 
 def Station1_get_info():
@@ -167,6 +171,7 @@ def Station1_get_info():
 
 def Station2_get_audio():
     audio_stream_UDP(MCAST_GRP_S2, MCAST_PORT_S2)
+    print("Station 2 chalu")
 
 
 def Station2_get_info():
