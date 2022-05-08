@@ -107,7 +107,7 @@ def station_1():
 
     #----------INFORMATION MULTICAST-----
 
-    MCAST_INFOPORT_S1 = 5007
+    MCAST_INFOPORT_S1 = 5432
     def information_stream_Station1():
         # print("Hello")
         info_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -188,7 +188,7 @@ def station_2():
 
     #----------INFORMATION STREAM---------------
 
-    MCAST_INFOPORT_S2 = 5007
+    MCAST_INFOPORT_S2 = 5432
     def information_stream_Station2():
         # print("Hello")
         info_server_socket2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
