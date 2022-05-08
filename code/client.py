@@ -115,7 +115,7 @@ def audio_stream_UDP(MCAST_GRP, MCAST_PORT):
             frame,_= client_socket.recvfrom(BUFF_SIZE)
             q.put(frame)
             # print('Queue size...',q.qsize())
-    ta = threading.Thread(target=getAudioData, args=())
+    ta = threading.Thread(target=getAudioData)
     ta.start()
     time.sleep(0.0175)
     print('Now Playing...')
@@ -142,43 +142,33 @@ def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
             new_frame = pickle.loads(frame)
             time.sleep(0)
             print(new_frame)
-    ti = threading.Thread(target=getInfo, args=())
+    ti = threading.Thread(target=getInfo)
     ti.start()
     time.sleep(0.0175)
 
-
-# taudio_S1= threading.Thread(target=audio_stream_UDP, args=('239.191.1.1', 5432))
-# tinfo_S1= threading.Thread(target=info_stream_UDP, args=('239.192.1.1',5007))
-# taudio_S1.start()
-# tinfo_S1.start()
-
-
-
-
-# def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
-#     print("This is Information Stream")
-#     print("You are tuned at", MCAST_GRP, "on the port -", MCAST_INFO_PORT)
-
-
 def Station1_get_audio():
-    audio_stream_UDP(MCAST_GRP_S1, MCAST_PORT_S1)
     print("Station 1 working")
+    audio_stream_UDP(MCAST_GRP_S1, MCAST_PORT_S1)
 
 
 def Station1_get_info():
+    print("Station 1 Info Coming")
     info_stream_UDP(MCAST_GRP_S1, MCAST_INFO_PORT_S1)
 
 
 def Station2_get_audio():
-    audio_stream_UDP(MCAST_GRP_S2, MCAST_PORT_S2)
     print("Station 2 chalu")
+    audio_stream_UDP(MCAST_GRP_S2, MCAST_PORT_S2)
 
 
 def Station2_get_info():
+    print("Station 2 Info Coming")
     info_stream_UDP(MCAST_GRP_S2, MCAST_INFO_PORT_S2)
 
+global Station1
+global Station2
 
-def UserInputMenu(numberOfStation):
+def UserInputMenu():
     printMenu()
     while True:
         user_input = input()
@@ -187,14 +177,17 @@ def UserInputMenu(numberOfStation):
             Station2 = False
             print("Pausing Stream")
             if Station1_get_audio_thread.is_alive():
+                Station1_get_audio_thread.join()
                 Station1_get_audio_thread.terminate()
+                Station1_get_info_thread.join()
                 Station1_get_info_thread.terminate()
                 Station1 = True
             elif Station2_get_audio_thread.is_alive():
+                Station2_get_audio_thread.join()
                 Station2_get_audio_thread.terminate()
+                Station2_get_info_thread.join()
                 Station2_get_info_thread.terminate()
                 Station2 = True
-
         elif user_input == "R":
             print("Restarting Stream")
             if Station1:
@@ -207,16 +200,18 @@ def UserInputMenu(numberOfStation):
         elif user_input == "C":
             if Station1_get_audio_thread.is_alive():
                 print("Station1 is alive, closing it")
+                Station1_get_audio_thread.join()
                 Station1_get_audio_thread.terminate()
+                Station1_get_info_thread.join()
                 Station1_get_info_thread.terminate()
-                Station2_get_audio_thread.start()
-                Station2_get_info_thread.start()
+
             elif Station2_get_audio_thread.is_alive():
                 print("Station2 is alive, closing it")
+                Station2_get_audio_thread.join()
                 Station2_get_audio_thread.terminate()
+                Station2_get_info_thread.join()
                 Station2_get_info_thread.terminate()
-                Station1_get_audio_thread.start()
-                Station1_get_info_thread.start()
+
             else:
                 ("You are not connected to a Station right Now")
             print("What station do you want to connect to?")
@@ -225,24 +220,38 @@ def UserInputMenu(numberOfStation):
 
         elif user_input == "X":
             print("Exiting from Program")
+            if Station1_get_audio_thread.is_alive():
+                print("Station1 is alive, closing it")
+                Station1_get_audio_thread.join()
+                Station1_get_audio_thread.terminate()
+                Station1_get_info_thread.join()
+                Station1_get_info_thread.terminate()
+
+            elif Station2_get_audio_thread.is_alive():
+                print("Station2 is alive, closing it")
+                Station2_get_audio_thread.join()
+                Station2_get_audio_thread.terminate()
+                Station2_get_info_thread.join()
+                Station2_get_info_thread.terminate()
+
             exit(1)
         else:
             print("Invalid Option in Menu")
             
 
-Station1_get_audio_thread = multiprocessing.Process(target=Station1_get_audio())
-Station1_get_info_thread = multiprocessing.Process(target=Station1_get_info())
-Station2_get_audio_thread = multiprocessing.Process(target=Station2_get_audio())
-Station2_get_info_thread = multiprocessing.Process(target=Station2_get_info())
+Station2_get_audio_thread = multiprocessing.Process(target=Station2_get_audio)
+Station1_get_info_thread = multiprocessing.Process(target=Station1_get_info)
+Station2_get_info_thread = multiprocessing.Process(target=Station2_get_info)
+Station1_get_audio_thread = multiprocessing.Process(target=Station1_get_audio)
 
 def UserChooseStation(numberOfStation):
     user_input = int(input("Enter your Station Number: "))
     if user_input in range(1, numberOfStation + 1):
         print("You have chosen a valid Station!")
         if user_input == 1:
-            Station1_get_audio()
-            # Station1_get_audio_thread.start()
-            # Station1_get_info_thread.start()
+            # Station1_get_audio()
+            Station1_get_audio_thread.start()
+            Station1_get_info_thread.start()
 
         elif user_input == 2:
             Station2_get_audio_thread.start()
@@ -254,6 +263,4 @@ def UserChooseStation(numberOfStation):
 SiteGreetings()
 StationListGreetings()
 UserChooseStation(numberOfStation)
-
-user_thread = multiprocessing.Process(target=UserInputMenu, args=(numberOfStation))
-user_thread.start()
+UserInputMenu()
