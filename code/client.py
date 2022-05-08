@@ -130,18 +130,18 @@ def audio_stream_UDP(MCAST_GRP, MCAST_PORT):
 def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
     BUFF_SIZE = 40960
     info_client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    print(MCAST_INFO_PORT)
     group = socket.inet_aton(MCAST_GRP)
     mreq = struct.pack('4sL', group, socket.INADDR_ANY)
     info_client_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
     info_client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     info_client_socket.bind(('', MCAST_INFO_PORT))
     def getInfo():
-        while True:
-            # print(MCAST_GRP,MCAST_INFO_PORT)
-            frame,_= info_client_socket.recvfrom(BUFF_SIZE)
-            new_frame = pickle.loads(frame)
-            time.sleep(0)
-            print(new_frame)
+        while True:          
+            frameinfo,_= info_client_socket.recvfrom(BUFF_SIZE)
+            new_frame = pickle.loads(frameinfo)
+            for item in new_frame:
+                print(new_frame)
     ti = threading.Thread(target=getInfo, args=())
     ti.start()
     time.sleep(0.0175)
@@ -177,10 +177,12 @@ def Station2_get_audio():
 def Station2_get_info():
     info_stream_UDP(MCAST_GRP_S2, MCAST_INFO_PORT_S2)
 
-
-def UserInputMenu(numberOfStation):
+global Station1
+global Station2
+def UserInputMenu():
     printMenu()
-    while True:
+    
+    while True:   
         user_input = input()
         if user_input == "P":
             Station1 = False
@@ -209,14 +211,14 @@ def UserInputMenu(numberOfStation):
                 print("Station1 is alive, closing it")
                 Station1_get_audio_thread.terminate()
                 Station1_get_info_thread.terminate()
-                Station2_get_audio_thread.start()
-                Station2_get_info_thread.start()
+                # Station2_get_audio_thread.start()
+                # Station2_get_info_thread.start()
             elif Station2_get_audio_thread.is_alive():
                 print("Station2 is alive, closing it")
                 Station2_get_audio_thread.terminate()
                 Station2_get_info_thread.terminate()
-                Station1_get_audio_thread.start()
-                Station1_get_info_thread.start()
+                # Station1_get_audio_thread.start()
+                # Station1_get_info_thread.start()
             else:
                 ("You are not connected to a Station right Now")
             print("What station do you want to connect to?")
@@ -225,15 +227,22 @@ def UserInputMenu(numberOfStation):
 
         elif user_input == "X":
             print("Exiting from Program")
+            # if Station1_get_audio_thread.is_alive():
+            #     Station1_get_audio_thread.terminate()
+            #     Station1_get_info_thread.terminate()
+            # elif Station1_get_audio_thread.is_alive():
+            #     Station2_get_audio_thread.terminate()
+            #     Station2_get_info_thread.terminate()
             exit(1)
         else:
             print("Invalid Option in Menu")
             
 
-Station1_get_audio_thread = multiprocessing.Process(target=Station1_get_audio())
-Station1_get_info_thread = multiprocessing.Process(target=Station1_get_info())
-Station2_get_audio_thread = multiprocessing.Process(target=Station2_get_audio())
-Station2_get_info_thread = multiprocessing.Process(target=Station2_get_info())
+Station1_get_audio_thread = multiprocessing.Process(target=Station1_get_audio)
+Station1_get_info_thread = multiprocessing.Process(target=Station1_get_info)
+Station2_get_audio_thread = multiprocessing.Process(target=Station2_get_audio)
+Station2_get_info_thread = multiprocessing.Process(target=Station2_get_info)
+
 
 def UserChooseStation(numberOfStation):
     user_input = int(input("Enter your Station Number: "))
@@ -253,6 +262,7 @@ def UserChooseStation(numberOfStation):
 SiteGreetings()
 StationListGreetings()
 UserChooseStation(numberOfStation)
+UserInputMenu()
 
-user_thread = multiprocessing.Process(target=UserInputMenu, args=(numberOfStation))
-user_thread.start()
+# user_thread = multiprocessing.Process(target=UserInputMenu, args=())
+# user_thread.start()
