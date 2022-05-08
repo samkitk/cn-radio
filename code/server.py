@@ -177,7 +177,7 @@ def station_2():
                 while True:
                     data = wf.readframes(CHUNK)
                     audio_server_socket2.sendto(data, (MCAST_GRP_STATION2, MCAST_PORT))
-                    time.sleep(0.005)
+                    time.sleep(0.01)
                     print(cnt)
                     if cnt > (wf.getnframes()/CHUNK):
                         break

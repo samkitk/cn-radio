@@ -140,8 +140,12 @@ def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
         while True:          
             frameinfo,_= info_client_socket.recvfrom(BUFF_SIZE)
             new_frame = pickle.loads(frameinfo)
-            for item in new_frame:
-                print(new_frame)
+            # for item in new_frame:
+                # print(new_frame)
+            print("--------Now Playing--------")
+            print("Song Title:",new_frame['title'])
+            print("Time Remaining:",new_frame['Time Remaining'])
+            print("---------------------------")
     ti = threading.Thread(target=getInfo, args=())
     ti.start()
     time.sleep(0.0175)
@@ -167,6 +171,28 @@ def Station2_get_info():
 
 global Station1
 global Station2
+
+def Station1Close():
+    Station1_get_audio_thread.terminate()
+    Station1_get_audio_thread.join()
+    Station1_get_audio_thread.close()
+    Station1_get_info_thread.terminate()
+    Station1_get_info_thread.join()
+    Station1_get_info_thread.close()
+    Station1_get_audio_thread.kill()
+    Station1_get_info_thread.kill()
+    
+def Station2Close():
+    Station2_get_audio_thread.terminate()
+    Station2_get_audio_thread.join()
+    Station2_get_audio_thread.close()
+    Station2_get_info_thread.terminate()
+    Station2_get_info_thread.join()
+    Station2_get_info_thread.close()
+    Station2_get_audio_thread.kill()
+    Station2_get_info_thread.kill()
+
+
 def UserInputMenu():
     printMenu()
     
@@ -177,16 +203,10 @@ def UserInputMenu():
             Station2 = False
             print("Pausing Stream")
             if Station1_get_audio_thread.is_alive():
-                Station1_get_audio_thread.join()
-                Station1_get_audio_thread.terminate()
-                Station1_get_info_thread.join()
-                Station1_get_info_thread.terminate()
+                Station1Close()
                 Station1 = True
             elif Station2_get_audio_thread.is_alive():
-                Station2_get_audio_thread.join()
-                Station2_get_audio_thread.terminate()
-                Station2_get_info_thread.join()
-                Station2_get_info_thread.terminate()
+                Station2Close()
                 Station2 = True
         elif user_input == "R":
             print("Restarting Stream")
@@ -200,16 +220,10 @@ def UserInputMenu():
         elif user_input == "C":
             if Station1_get_audio_thread.is_alive():
                 print("Station1 is alive, closing it")
-                Station1_get_audio_thread.join()
-                Station1_get_audio_thread.terminate()
-                Station1_get_info_thread.join()
-                Station1_get_info_thread.terminate()
+                Station1Close()
             elif Station2_get_audio_thread.is_alive():
                 print("Station2 is alive, closing it")
-                Station2_get_audio_thread.join()
-                Station2_get_audio_thread.terminate()
-                Station2_get_info_thread.join()
-                Station2_get_info_thread.terminate()
+                Station2Close()
             else:
                 ("You are not connected to a Station right Now")
             print("What station do you want to connect to?")
@@ -220,17 +234,11 @@ def UserInputMenu():
             print("Exiting from Program")
             if Station1_get_audio_thread.is_alive():
                 print("Station1 is alive, closing it")
-                Station1_get_audio_thread.join()
-                Station1_get_audio_thread.terminate()
-                Station1_get_info_thread.join()
-                Station1_get_info_thread.terminate()
+                Station1Close()
 
             elif Station2_get_audio_thread.is_alive():
                 print("Station2 is alive, closing it")
-                Station2_get_audio_thread.join()
-                Station2_get_audio_thread.terminate()
-                Station2_get_info_thread.join()
-                Station2_get_info_thread.terminate()
+                Station2Close()
 
             exit(1)
         else:
@@ -247,11 +255,14 @@ def UserChooseStation(numberOfStation):
     if user_input in range(1, numberOfStation + 1):
         print("You have chosen a valid Station!")
         if user_input == 1:
-            # Station1_get_audio()
+            if Station1_get_audio_thread.is_alive():
+                Station1Close()
             Station1_get_audio_thread.start()
             Station1_get_info_thread.start()
 
         elif user_input == 2:
+            if Station2_get_audio_thread.is_alive():
+                Station2Close()
             Station2_get_audio_thread.start()
             Station2_get_info_thread.start()
     else:
