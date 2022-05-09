@@ -143,8 +143,18 @@ def info_stream_UDP(MCAST_GRP, MCAST_INFO_PORT):
             # for item in new_frame:
                 # print(new_frame)
             print("--------Now Playing--------")
-            print("Song Title:",new_frame['title'])
-            print("Time Remaining:",new_frame['Time Remaining'])
+            if len(new_frame.keys()) == 6:
+                print("Song Name Size:  ",new_frame['Song Name Size'])
+                print("Song Title:      ",new_frame['title'])
+                print("Time Remaining:  ",new_frame['Time Remaining'])
+                print("Filesize:        ",new_frame['Filesize'])
+                print("Next Song Size   ",new_frame['Next Song Size'])
+                print("Next Song Title  ",new_frame['Next Song Title'])
+            elif len(new_frame.keys()) == 4:
+                print("Song Name Size:  ",new_frame['size_title'])
+                print("Song Title:      ",new_frame['title'])
+                print("Time Remaining:  ",new_frame['Time Remaining'])
+                print("Filesize:        ",new_frame['filesize'])
             print("---------------------------")
     ti = threading.Thread(target=getInfo, args=())
     ti.start()
