@@ -1,5 +1,7 @@
 # Starting The Project
-Start a Virtual Environment
+Start Virtual Environment
 
-## To kill server process
+pip3 install requirements.txt
+
+## To kill server process and restart
 kill -9 $(ps -A | grep python | awk '{print $1}')
