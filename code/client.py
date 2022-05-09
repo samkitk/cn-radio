@@ -11,7 +11,7 @@ import struct
 import multiprocessing
 
 HOST = '127.0.0.1' # The server's hostname or IP address
-PORT = 3004  # The port used by the server
+PORT = 3004  # The port used by the server  
 
 menu_options = {
     "P": "Pause",
