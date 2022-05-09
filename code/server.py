@@ -75,7 +75,7 @@ station1 = {
     "radio_stn_name": "Red FM",
     "multicast_address": "239.192.1.1",
     "data_port": 5007,
-    "info_port": 5432,
+    "info_port": 5008,
     "bit_rate": 44100,
 }
 
@@ -85,7 +85,7 @@ station2 = {
     "radio_stn_name": "Blue FM",
     "multicast_address": "239.192.1.2",
     "data_port": 5007,
-    "info_port": 5432,
+    "info_port": 5008,
     "bit_rate": 44100,
 }
 
@@ -150,7 +150,7 @@ def station_1():
     #----------INFORMATION MULTICAST-----
 
     # Information Port of Station 1
-    MCAST_INFOPORT_S1 = 5432
+    MCAST_INFOPORT_S1 = 5008
 
     def information_stream_Station1():
         # We set UDP socket on same multicast IP but different port
@@ -231,7 +231,7 @@ def station_2():
 
     #----------INFORMATION STREAM---------------
 
-    MCAST_INFOPORT_S2 = 5432
+    MCAST_INFOPORT_S2 = 5008
     def information_stream_Station2():
         # print("Hello")
         info_server_socket2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -285,7 +285,7 @@ def tcp_connection():
     # REUSEADDR is used for multi-client binding
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     host = '127.0.0.1'  # Get local machine name
-    port = 3004  # Reserve a port for your service.
+    port = 5432  # Reserve a port for your service.
 
     print("Server started!")
     print("Waiting for clients...")

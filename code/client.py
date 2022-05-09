@@ -68,7 +68,7 @@ import multiprocessing
 
 # --- TCP Connection Details ---
 HOST = '127.0.0.1' # This is the server's IP Address
-PORT = 3004  # This is the server's Port 
+PORT = 5432  # This is the server's Port 
 
 # --- Menu Options provided to User ---
 menu_options = {
