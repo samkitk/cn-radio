@@ -22,7 +22,7 @@ menu_options = {
 
 
 def TCP_Socket_Client_to_Server():
-    print("++++++++++++++++++++++")
+    # print("++++++++++++++++++++++")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         # s.sendall(b"1")
@@ -30,10 +30,10 @@ def TCP_Socket_Client_to_Server():
         # sep = "\0"
         string = str(num)
         s.send(string.encode())
-        print("********************")
+        # print("********************")
         data = s.recv(4096)  ##randomly taken 4096
         station_list = pickle.loads(data)
-        print(data)
+        # print(data)
         return station_list
 
 
@@ -175,22 +175,22 @@ global Station2
 def Station1Close():
     Station1_get_audio_thread.terminate()
     Station1_get_audio_thread.join()
-    Station1_get_audio_thread.close()
+    # Station1_get_audio_thread.close()
     Station1_get_info_thread.terminate()
     Station1_get_info_thread.join()
-    Station1_get_info_thread.close()
-    Station1_get_audio_thread.kill()
-    Station1_get_info_thread.kill()
+    # Station1_get_info_thread.close()
+    # Station1_get_audio_thread.kill()
+    # Station1_get_info_thread.kill()
     
 def Station2Close():
     Station2_get_audio_thread.terminate()
     Station2_get_audio_thread.join()
-    Station2_get_audio_thread.close()
+    # Station2_get_audio_thread.close()
     Station2_get_info_thread.terminate()
     Station2_get_info_thread.join()
-    Station2_get_info_thread.close()
-    Station2_get_audio_thread.kill()
-    Station2_get_info_thread.kill()
+    # Station2_get_info_thread.close()
+    # Station2_get_audio_thread.kill()
+    # Station2_get_info_thread.kill()
 
 
 def UserInputMenu():
@@ -211,11 +211,11 @@ def UserInputMenu():
         elif user_input == "R":
             print("Restarting Stream")
             if Station1:
-                Station1_get_audio_thread.start()
-                Station1_get_info_thread.start()
+                Station1_get_audio_thread.join()
+                Station1_get_info_thread.join()
             elif Station2:
-                Station2_get_audio_thread.start()
-                Station2_get_info_thread.start()
+                Station2_get_audio_thread.join()
+                Station2_get_info_thread.join()
 
         elif user_input == "C":
             if Station1_get_audio_thread.is_alive():
