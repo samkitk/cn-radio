@@ -57,6 +57,8 @@ import os
 from tinytag import TinyTag
 import numpy as np
 
+
+#--Sending Site Info-----
 site_info = {
     "type": 10,
     "site_name_size": 5,
@@ -66,6 +68,7 @@ site_info = {
     "radio_stn_count": 2,
 }
 
+#----Station List-------
 station1 = {
     "radio_stn_number": 1,
     "radio_stn_name_size": 10,
@@ -88,25 +91,21 @@ station2 = {
 
 radio_stn_info = {"site_info": site_info, "station1": station1, "station2": station2}
 
+#Pickle is used to convert object to byte stream
 pickled_radio_stn_info = pickle.dumps(radio_stn_info)
-# pickled_site_info = pickle.dumps(site_info)
 
 
-
-#    x = input()
-#    if(x=="a"):
-#        s.close()
-#        break
-# Note it's (addr,) not (addr) because second parameter is a tuple
-# Edit: (c,addr)
-# that's how you pass arguments to functions when creating new threads using thread module.
 
 #-------------UDP SERVER SOCKET----------------\
+
 global path_Station1
+#Paths of the station which consists of ".wav" audio files
 path_Station1 = os.listdir("data/Station_1")
 path_Station2 = os.listdir("data/Station_2")
+#ttl set for MULTICASTING
 ttl = struct.pack('b', 2)
-MCAST_PORT = 5007 #DataPort
+#Data Port for both the stations
+MCAST_PORT = 5007 
 
 IS_ALL_GROUPS = True
 
@@ -117,45 +116,45 @@ def station_1():
     #---------- MULTIMEDIA MULTICAST-----
     def audio_stream_UDP_Station1():
         BUFF_SIZE = 65536
+        #Creating UDP scoket and setting socket Operations
         audio_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         audio_server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
         CHUNK = 10240
+        #We use for loop to send all songs on this path
         for i in path_Station1:
+            #wave library reads the wav files 
             wf = wave.open("data/Station_1/" + i)
+            #pyaudio is used to stream functionalties
             p = pyaudio.PyAudio()   
+            #we extract all bitrate and frame rate of the audio via pyaudio
             stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
                             channels=wf.getnchannels(),
                             rate=wf.getframerate(),
                             input=True,
                             frames_per_buffer=CHUNK)
-            data = None
-            sample_rate = wf.getframerate()
-            print(sample_rate)
+            data = None            
+            #count calculates the number of packets sent
+            packet_count = 0
             while True:
-                audio_server_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
-                DATA_SIZE = math.ceil(wf.getnframes()/CHUNK)
-                DATA_SIZE = str(DATA_SIZE).encode()
-                # DURATION = DATA_SIZE*CHUNK/44100
-
-                # print('[Sending data size]...', wf.getnframes()/sample_rate)
-                audio_server_socket.sendto(DATA_SIZE, (MCAST_GRP_STATION1, MCAST_PORT))
-                cnt = 0
-                while True:
-                    data = wf.readframes(CHUNK)
-                    audio_server_socket.sendto(data, (MCAST_GRP_STATION1, MCAST_PORT))
-                    time.sleep(0.005)
-                    print(cnt)
-                    if cnt > (wf.getnframes()/CHUNK):
-                        break
-                    cnt += 1
-                break
-            print('SENT...')
+                data = wf.readframes(CHUNK)
+                #this data is sent to Multicast group of Station 1
+                audio_server_socket.sendto(data, (MCAST_GRP_STATION1, MCAST_PORT))
+                #this sleep is adjusted according to uniform bitrate
+                time.sleep(0.005)
+                print(packet_count)
+                #this if loop breaks while if we have sent
+                if packet_count > (wf.getnframes()/CHUNK):
+                    break
+                packet_count += 1
+            print('Audio Sent')
 
     #----------INFORMATION MULTICAST-----
 
+    #Information Port of Station 1
     MCAST_INFOPORT_S1 = 5432
+
     def information_stream_Station1():
-        # print("Hello")
+        #We set UDP socket on same multicast IP but different port
         info_server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         path_Station1 = os.listdir("data/Station_1")
         n=len(path_Station1)
@@ -212,23 +211,16 @@ def station_2():
             data = None
             sample_rate = wf.getframerate()
             print(sample_rate)
+            audio_server_socket2.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
+            count = 0
             while True:
-                audio_server_socket2.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
-                DATA_SIZE = math.ceil(wf.getnframes()/CHUNK)
-                DATA_SIZE = str(DATA_SIZE).encode()
-
-                print('[Sending data size]...', wf.getnframes()/sample_rate)
-                audio_server_socket2.sendto(DATA_SIZE, (MCAST_GRP_STATION2, MCAST_PORT))
-                cnt = 0
-                while True:
-                    data = wf.readframes(CHUNK)
-                    audio_server_socket2.sendto(data, (MCAST_GRP_STATION2, MCAST_PORT))
-                    time.sleep(0.01)
-                    print(cnt)
-                    if cnt > (wf.getnframes()/CHUNK):
-                        break
-                    cnt += 1
-                break
+                data = wf.readframes(CHUNK)
+                audio_server_socket2.sendto(data, (MCAST_GRP_STATION2, MCAST_PORT))
+                time.sleep(0.01)
+                print(count)
+                if count > (wf.getnframes()/CHUNK):
+                    break
+                count += 1
             print('SENT...')
 
 

@@ -94,7 +94,6 @@ def TCP_Socket_Client_to_Server():
         # print("********************")
         data = s.recv(4096)  ##randomly taken 4096
         station_list = pickle.loads(data)
-        # print(data)
         return station_list
 
 
